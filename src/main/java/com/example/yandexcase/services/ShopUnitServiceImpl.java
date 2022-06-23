@@ -1,13 +1,9 @@
 package com.example.yandexcase.services;
 
 
-import com.example.yandexcase.ShopUnit;
-import com.example.yandexcase.ShopUnitImport;
-import com.example.yandexcase.ShopUnitImportRequest;
-import com.example.yandexcase.ShopUnitType;
+import com.example.yandexcase.*;
 import com.example.yandexcase.entity.ShopUnitDTO;
 import com.example.yandexcase.entity.ShopUnitStatistic;
-import com.example.yandexcase.entity.ShopUnitStatisticUnitDTO;
 import com.example.yandexcase.mappers.ShopUnitMapper;
 import com.example.yandexcase.repositories.ShopUnitRepository;
 import com.example.yandexcase.repositories.ShopUnitStatisticUnitRepository;
@@ -15,12 +11,10 @@ import com.example.yandexcase.utils.StructureViolationException;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.stereotype.Service;
-import org.springframework.validation.annotation.Validated;
 
 
 import java.time.OffsetDateTime;
 
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.UUID;
@@ -38,19 +32,22 @@ public class ShopUnitServiceImpl {
 
     private final ShopUnitStatisticUnitRepository shopUnitStatisticUnitRepository;
 
-    public List<ShopUnitDTO> getAllShopUnits(){
-        return shopUnitRepository.findAll();
+    public ShopUnitStatisticResponse getShopUnits(OffsetDateTime dateStart, OffsetDateTime dateEnd) {
+        ShopUnitStatisticResponse shopUnitStatisticResponse= new ShopUnitStatisticResponse();
+        shopUnitStatisticResponse.setItems(shopUnitRepository.findAllByDateAfterAndDateBefore(dateStart,dateEnd).stream().map(shopUnitMapper::mapFromShopUnitDTOToShopUnitStatisticUnit).collect(Collectors.toList()));
+        if(shopUnitStatisticResponse.getItems()==null || shopUnitStatisticResponse.getItems().isEmpty()) throw new NoSuchElementException("Item not found");
+        return shopUnitStatisticResponse;
     }
 
-    public ShopUnitDTO getShopUnit(UUID id) {
-        return shopUnitRepository.findById(id).orElseThrow(()-> new NoSuchElementException("Item not found"));
+    public ShopUnit getShopUnit(UUID id) {
+        return shopUnitMapper.mapFromShopUnitDTOToShopUnit(shopUnitRepository.findById(id).orElseThrow(()-> new NoSuchElementException("Item not found")));
     }
 
     public void addShopUnits(ShopUnitImportRequest shopUnitImportRequest){
         checkShopUnitStructure(shopUnitImportRequest);
 
         shopUnitRepository.saveAll(shopUnitImportRequest.getItems().stream()
-                .map(shopUnitMapper::mapFromShopUnitImportToShopUnit).peek(s->s.setDate(shopUnitImportRequest.getUpdateDate())).collect(Collectors.toList()));
+                .map(shopUnitMapper::mapFromShopUnitImportToShopUnitDTO).peek(s->s.setDate(shopUnitImportRequest.getUpdateDate())).collect(Collectors.toList()));
 
         shopUnitStatisticUnitRepository.saveAll(shopUnitImportRequest.getItems().stream()
                 .map(shopUnitMapper::mapFromShopUnitImportToShopUnitStatistic).peek(s->s.setDate(shopUnitImportRequest.getUpdateDate())).collect(Collectors.toList()));
@@ -60,21 +57,22 @@ public class ShopUnitServiceImpl {
 
     public void deleteShopUnit(UUID id) {
         shopUnitRepository.deleteById(id);
+        staticticUnitSafeDelete(id);
     }
 
-    public List<ShopUnitStatisticUnitDTO> getStatistic(UUID id, OffsetDateTime after, OffsetDateTime before) {
-        return shopUnitStatisticUnitRepository.findAllByIdAndDateAfterAndDateBefore(id,after,before).stream().map(shopUnitMapper::mapFromShopUnitStatisticToShopUnitStatisticUnitDTO).collect(Collectors.toList());
-    }
-    public void saveShopUnitStatistic(ShopUnitStatistic shopUnitStatistic) {
-        shopUnitStatisticUnitRepository.save(shopUnitStatistic);
+    public ShopUnitStatisticResponse getStatistic(UUID id, OffsetDateTime after, OffsetDateTime before) {
+        ShopUnitStatisticResponse shopUnitStatisticResponse= new ShopUnitStatisticResponse();
+        shopUnitStatisticResponse.setItems(shopUnitStatisticUnitRepository.findAllByShopUnitIdAndDateAfterAndDateBeforeAndDeletedIsFalse(id,after,before).stream().map(shopUnitMapper::mapFromShopUnitStatisticToShopUnitStatisticUnit).collect(Collectors.toList()));
+        if(shopUnitStatisticResponse.getItems()==null || shopUnitStatisticResponse.getItems().isEmpty()) throw new NoSuchElementException("Item not found");
+        return shopUnitStatisticResponse;
+
     }
 
-
-    public void checkShopUnitStructure(ShopUnitImportRequest shopUnitImportRequest){
+    private void checkShopUnitStructure(ShopUnitImportRequest shopUnitImportRequest){
         for (ShopUnitImport shopUnitImport:shopUnitImportRequest.getItems()) {
             ShopUnitDTO oldShopUnit = null;
             try {
-                oldShopUnit = getShopUnit(shopUnitImport.getId());
+                oldShopUnit = shopUnitMapper.mapFromShopUnitToShopUnitDTO(getShopUnit(shopUnitImport.getId()));
             } catch (NoSuchElementException e) {
                 break;
             }
@@ -84,7 +82,7 @@ public class ShopUnitServiceImpl {
             if(shopUnitImport.getParentId()!=null && oldShopUnit.getParentId()!=shopUnitImport.getParentId()){
                 ShopUnitDTO newShopUnitParent=null;
                 try {
-                    newShopUnitParent = getShopUnit(shopUnitImport.getParentId());
+                    newShopUnitParent = shopUnitMapper.mapFromShopUnitToShopUnitDTO(getShopUnit(shopUnitImport.getParentId()));
                 } catch (NoSuchElementException e) {
                     break;
                 }
@@ -97,5 +95,14 @@ public class ShopUnitServiceImpl {
         }
     }
 
-
+    private void staticticUnitSafeDelete(UUID id){
+        List<ShopUnitStatistic> shopUnitStatistics=shopUnitStatisticUnitRepository.findAllByShopUnitId(id);
+        for (ShopUnitStatistic shopUnitStatistic:
+                shopUnitStatistics) {
+            if(shopUnitStatistic!=null){
+                shopUnitStatistic.setDeleted(true);
+                shopUnitStatisticUnitRepository.save(shopUnitStatistic);
+            }
+        }
+    }
 }

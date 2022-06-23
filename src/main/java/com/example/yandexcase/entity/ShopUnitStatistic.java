@@ -11,10 +11,10 @@ import java.util.UUID;
 public class ShopUnitStatistic {
     @Id
     @Column(nullable = false)
-    private UUID statisticId;
+    private UUID statisticUnitId;
 
     @Column(nullable = false)
-    private UUID id;
+    private UUID shopUnitId;
 
     @Column(nullable = false)
     private String name;
@@ -31,4 +31,7 @@ public class ShopUnitStatistic {
 
     @Column(nullable = false)
     private OffsetDateTime date;
+
+    @Column
+    private boolean deleted;
 }

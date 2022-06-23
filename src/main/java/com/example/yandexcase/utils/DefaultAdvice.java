@@ -6,6 +6,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 import javax.validation.ConstraintViolationException;
@@ -39,6 +40,14 @@ public class DefaultAdvice extends ResponseEntityExceptionHandler {
     }
     @ExceptionHandler(ConstraintViolationException.class)
     public ResponseEntity<Error> handleStructureViolationException(ConstraintViolationException e) {
+        Error response = new Error();
+        response.setCode(400);
+        response.setMessage("Validation Failed");
+        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<Error> handleMethodArgumentTypeMismatchException(MethodArgumentTypeMismatchException e) {
         Error response = new Error();
         response.setCode(400);
         response.setMessage("Validation Failed");

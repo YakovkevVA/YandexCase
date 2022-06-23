@@ -7,10 +7,14 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import javax.transaction.Transactional;
+import java.time.OffsetDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Repository
 public interface ShopUnitRepository extends JpaRepository<ShopUnitDTO, UUID> {
+    public List<ShopUnitDTO> findAllByDateAfterAndDateBefore(OffsetDateTime after, OffsetDateTime before);
+
     @Modifying
     @Transactional
     @Query(nativeQuery = true, value =

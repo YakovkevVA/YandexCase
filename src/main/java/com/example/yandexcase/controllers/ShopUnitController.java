@@ -1,8 +1,10 @@
 package com.example.yandexcase.controllers;
 
+import com.example.yandexcase.ShopUnit;
 import com.example.yandexcase.ShopUnitImportRequest;
+import com.example.yandexcase.ShopUnitStatisticResponse;
+import com.example.yandexcase.ShopUnitStatisticUnit;
 import com.example.yandexcase.entity.ShopUnitDTO;
-import com.example.yandexcase.entity.ShopUnitStatisticUnitDTO;
 import com.example.yandexcase.services.ShopUnitServiceImpl;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
@@ -26,28 +28,26 @@ public class ShopUnitController {
     private final ShopUnitServiceImpl shopUnitService;
 
     @GetMapping("/sales")
-    public List<ShopUnitDTO> getSales(){
-        return shopUnitService.getAllShopUnits();
+    public ShopUnitStatisticResponse getSales(@RequestParam(name = "datestart", required = false)
+                                          @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) OffsetDateTime dateStart,
+                                      @RequestParam(name = "dateend", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) OffsetDateTime dateEnd){
+        if (dateStart == null) dateStart = OffsetDateTime.from(Instant.ofEpochMilli(0).atZone(ZoneId.systemDefault()));
+        if (dateEnd == null) dateEnd = OffsetDateTime.now();
+        return shopUnitService.getShopUnits(dateStart, dateEnd);
     }
 
     @GetMapping("node/{id}/statistic")
-    public List<ShopUnitStatisticUnitDTO> getStatistic(@PathVariable UUID id,
-                                                       @RequestParam(name = "datestart", required = false)
-                                                       @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) OffsetDateTime dateStart,
-                                                       @RequestParam(name = "dateend", required = false)
-                                                       @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)   OffsetDateTime dateEnd){
-        if(dateStart==null) dateStart = OffsetDateTime.from(Instant.ofEpochMilli(0).atZone(ZoneId.systemDefault()));
-        if(dateEnd==null) dateEnd = OffsetDateTime.now();
-        return shopUnitService.getStatistic(id,dateStart,dateEnd);
-    }
-
-    @GetMapping("/nodes") //удоли
-    public List<ShopUnitDTO> getAllShopUnits(){
-        return shopUnitService.getAllShopUnits();
+    public ShopUnitStatisticResponse getStatistic(@PathVariable UUID id,
+                                                  @RequestParam(name = "datestart", required = false)
+                                                  @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) OffsetDateTime dateStart,
+                                                  @RequestParam(name = "dateend", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) OffsetDateTime dateEnd) {
+        if (dateStart == null) dateStart = OffsetDateTime.from(Instant.ofEpochMilli(0).atZone(ZoneId.systemDefault()));
+        if (dateEnd == null) dateEnd = OffsetDateTime.now();
+        return shopUnitService.getStatistic(id, dateStart, dateEnd);
     }
 
     @GetMapping("/nodes/{id}")
-    public ShopUnitDTO getShopUnit(@PathVariable UUID id){
+    public ShopUnit getShopUnit(@PathVariable UUID id){
         return shopUnitService.getShopUnit(id);
     }
 
