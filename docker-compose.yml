@@ -1,0 +1,43 @@
+version: '2'
+
+services:
+  app:
+#    build:
+#      dockerfile: Dockerfile
+#    context: .
+    image: zxc
+
+    container_name: app
+
+    ports:
+      - "8080:8080"
+
+
+    depends_on:
+      - db
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/compose-postgres
+      - SPRING_DATASOURCE_USERNAME=compose-postgres
+      - SPRING_DATASOURCE_PASSWORD=compose-postgres
+    networks:
+      - my-network
+
+
+  db:
+    image: 'postgres:13.1-alpine'
+    container_name: db
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=compose-postgres
+      - POSTGRES_PASSWORD=compose-postgres
+    volumes:
+      - my-volume:/var/lib/postgresql/data
+    networks:
+      - my-network
+# Volumes
+volumes:
+  my-volume:
+
+networks:
+  my-network:

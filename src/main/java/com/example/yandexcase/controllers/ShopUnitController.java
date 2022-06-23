@@ -27,6 +27,12 @@ public class ShopUnitController {
 
     private final ShopUnitServiceImpl shopUnitService;
 
+    @GetMapping("/ping")
+    public String sas(){
+        System.out.println("AAAAAAAAAAAAAAAAAAAAAAAA");
+        return "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
+    }
+
     @GetMapping("/sales")
     public ShopUnitStatisticResponse getSales(@RequestParam(name = "datestart", required = false)
                                           @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) OffsetDateTime dateStart,
