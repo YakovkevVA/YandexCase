@@ -5,12 +5,12 @@ services:
 #    build:
 #      dockerfile: Dockerfile
 #    context: .
-    image: zxc
+    image: xcv
 
     container_name: app
 
     ports:
-      - "8080:8080"
+      - "8080:80"
 
 
     depends_on:
@@ -19,6 +19,7 @@ services:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/compose-postgres
       - SPRING_DATASOURCE_USERNAME=compose-postgres
       - SPRING_DATASOURCE_PASSWORD=compose-postgres
+      - SPRING_PORT=80
     networks:
       - my-network
 
