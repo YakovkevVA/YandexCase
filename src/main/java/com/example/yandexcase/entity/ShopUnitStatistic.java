@@ -6,30 +6,29 @@ import lombok.Data;
 import javax.persistence.*;
 import java.time.OffsetDateTime;
 import java.util.UUID;
-
 @Entity
 @Data
-@Table(name = "shop_unit_import")
-public class ShopUnitImportDTO {
+public class ShopUnitStatistic {
     @Id
-    @Column(name = "id", nullable = false)
+    @Column(nullable = false)
+    private UUID statisticId;
+
+    @Column(nullable = false)
     private UUID id;
 
     @Column(nullable = false)
     private String name;
 
     @Column
-    private OffsetDateTime date;
+    private UUID parentId;
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private ShopUnitType type;
 
     @Column
-    private UUID parentId;
-
-    @Column
     private Long price;
 
-
+    @Column(nullable = false)
+    private OffsetDateTime date;
 }

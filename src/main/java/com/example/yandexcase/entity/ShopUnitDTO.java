@@ -1,6 +1,7 @@
 package com.example.yandexcase.entity;
 
 import com.example.yandexcase.ShopUnitType;
+import com.example.yandexcase.utils.ShopUnitValidation;
 import lombok.Data;
 
 import javax.persistence.*;
@@ -11,6 +12,7 @@ import java.util.UUID;
 @Entity
 @Data
 @Table(name = "shop_unit")
+@ShopUnitValidation
 public class ShopUnitDTO {
     @Id
     @Column(name = "id", nullable = false)
@@ -32,7 +34,7 @@ public class ShopUnitDTO {
     @Column
     private Long price;
 
-    @OneToMany
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "parentId")
     private List<ShopUnitDTO> childrens;
 
 
